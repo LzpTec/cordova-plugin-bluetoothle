@@ -61,6 +61,7 @@ public class BluetoothLePlugin extends CordovaPlugin {
   private final int REQUEST_BT_ENABLE = 59627; /*Random integer*/
   private final int REQUEST_ACCESS_FINE_LOCATION = 59628;
   private final int REQUEST_LOCATION_SOURCE_SETTINGS = 59629;
+  private final int TRANSPORT_LE = 2;
   private BluetoothAdapter bluetoothAdapter;
   private boolean isReceiverRegistered = false;
   private boolean isBondReceiverRegistered = false;
@@ -1489,7 +1490,7 @@ public class BluetoothLePlugin extends CordovaPlugin {
       }
 
       try {
-        bluetoothGatt = (BluetoothGatt) connectGattMethod.invoke(device, cordova.getActivity().getApplicationContext(), autoConnect, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE);
+        bluetoothGatt = (BluetoothGatt) connectGattMethod.invoke(device, cordova.getActivity().getApplicationContext(), autoConnect, bluetoothGattCallback, TRANSPORT_LE);
       } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
         e.printStackTrace();
       }
