@@ -38,6 +38,8 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanCallback;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1475,7 +1477,29 @@ public class BluetoothLePlugin extends CordovaPlugin {
 
     connections.put(device.getAddress(), connection);
 
-    BluetoothGatt bluetoothGatt = device.connectGatt(cordova.getActivity().getApplicationContext(), autoConnect, bluetoothGattCallback);
+    BluetoothGatt bluetoothGatt = null;
+    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
+      // Little hack with reflect to use the connect gatt with defined transport in Lollipop
+      Method connectGattMethod = null;
+
+      try {
+        connectGattMethod = device.getClass().getMethod("connectGatt", Context.class, boolean.class, BluetoothGattCallback.class, int.class);
+      } catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+
+      try {
+        bluetoothGatt = (BluetoothGatt) connectGattMethod.invoke(device, cordova.getActivity().getApplicationContext(), autoConnect, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE);
+      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        e.printStackTrace();
+      }
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      bluetoothGatt = device.connectGatt(cordova.getActivity().getApplicationContext(), autoConnect, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE);
+    }
+
+    if(bluetoothGatt == null){
+      bluetoothGatt = device.connectGatt(cordova.getActivity().getApplicationContext(), autoConnect, bluetoothGattCallback);
+    }
 
     connection.put(keyPeripheral, bluetoothGatt);
   }
